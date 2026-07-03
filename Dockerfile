@@ -12,10 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Build and install the LED matrix bindings (GPL-2.0, optional hardware dep).
-# Upstream packages from the repo root via scikit-build-core; pip's isolated
-# build env pulls cython/cmake/ninja itself, so no extra apt packages needed.
-RUN git clone --depth=1 https://github.com/hzeller/rpi-rgb-led-matrix.git /opt/rpi-rgb-led-matrix \
-    && pip install --no-cache-dir /opt/rpi-rgb-led-matrix
+# Pinned to the last upstream commit before the 2026 packaging rework: the
+# newer pip-from-repo-root path needs Pillow's private C headers (Imaging.h)
+# and does not build on a stock image. Keep this ref in sync with the
+# `hardware` extra in pyproject.toml.
+ARG RGBMATRIX_REF=2f72a32b3deea16d2b8e9b281d0475ef3b1d0d72
+RUN pip install --no-cache-dir cython \
+    && git clone https://github.com/hzeller/rpi-rgb-led-matrix.git /opt/rpi-rgb-led-matrix \
+    && git -C /opt/rpi-rgb-led-matrix checkout --quiet "${RGBMATRIX_REF}" \
+    && make -C /opt/rpi-rgb-led-matrix build-python PYTHON="$(which python3)" \
+    && pip install --no-cache-dir /opt/rpi-rgb-led-matrix/bindings/python
 
 # Install the app (editable: fonts resolve relative to /app).
 COPY pyproject.toml README.md LICENSE ./
