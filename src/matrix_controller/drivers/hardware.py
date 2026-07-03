@@ -68,10 +68,17 @@ class HardwareDriver:
 def _apply_process_tuning(profile: HardwareProfile) -> None:
     """Pin off the library's spin core and raise priority. Best-effort."""
     if profile.cpu_affinity is not None:
-        try:
-            os.sched_setaffinity(0, set(profile.cpu_affinity))  # type: ignore[attr-defined]
-        except (AttributeError, OSError) as exc:
-            print(f"Could not set CPU affinity: {exc}")
+        # sched_setaffinity is Linux-only; getattr keeps this module
+        # type-clean on every platform (a direct call needs a type: ignore
+        # on macOS that strict mypy then rejects as unused on Linux).
+        set_affinity = getattr(os, "sched_setaffinity", None)
+        if set_affinity is None:
+            print("Could not set CPU affinity: unsupported on this platform")
+        else:
+            try:
+                set_affinity(0, set(profile.cpu_affinity))
+            except OSError as exc:
+                print(f"Could not set CPU affinity: {exc}")
     try:
         os.nice(-10)
     except OSError as exc:
