@@ -17,7 +17,9 @@ dependencies = [
 
 [project.optional-dependencies]
 hardware = [
-    "rgbmatrix @ git+https://github.com/hzeller/rpi-rgb-led-matrix.git#subdirectory=bindings/python",
+    # Pinned pre-rework upstream ref — keep in sync with RGBMATRIX_REF in the
+    # Dockerfile, which documents why.
+    "rgbmatrix @ git+https://github.com/hzeller/rpi-rgb-led-matrix.git@2f72a32b3deea16d2b8e9b281d0475ef3b1d0d72#subdirectory=bindings/python",
 ]
 dev = [
     "pytest>=8",

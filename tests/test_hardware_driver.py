@@ -1,6 +1,9 @@
 import importlib
+import os
 
-from matrix_controller.drivers.hardware import matrix_options_kwargs
+import pytest
+
+from matrix_controller.drivers.hardware import _apply_process_tuning, matrix_options_kwargs
 from matrix_controller.profiles import PROFILES
 
 
@@ -31,3 +34,21 @@ def test_env_overrides_win() -> None:
     assert values["brightness"] == 70
     assert values["pwm_bits"] == 11
     assert values["gpio_slowdown"] == 3  # untouched
+
+
+def test_process_tuning_sets_affinity_when_supported(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[int, set[int]]] = []
+    # raising=False: creates the attribute on platforms that lack it (macOS).
+    monkeypatch.setattr(
+        os, "sched_setaffinity", lambda pid, cpus: calls.append((pid, cpus)), raising=False
+    )
+    _apply_process_tuning(PROFILES["pi-zero-2w"])
+    assert calls == [(0, {0, 1, 2})]
+
+
+def test_process_tuning_degrades_without_sched_setaffinity(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.delattr(os, "sched_setaffinity", raising=False)
+    _apply_process_tuning(PROFILES["pi-zero-2w"])  # must not raise
+    assert "Could not set CPU affinity" in capsys.readouterr().out
