@@ -1,0 +1,12 @@
+services:
+  matrix-controller:
+    build: .
+    container_name: matrix-controller
+    privileged: true # GPIO access for the LED matrix
+    env_file:
+      - .env
+    restart: unless-stopped
+    # If your API host is an mDNS name (.local) the container can't resolve,
+    # map it explicitly:
+    # extra_hosts:
+    #   - "trains.local:192.168.1.50"
