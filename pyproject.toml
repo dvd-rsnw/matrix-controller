@@ -17,7 +17,8 @@ dependencies = [
 
 [project.optional-dependencies]
 hardware = [
-    "rgbmatrix @ git+https://github.com/hzeller/rpi-rgb-led-matrix.git#subdirectory=bindings/python",
+    # Upstream moved python packaging to the repo root (scikit-build-core).
+    "rgbmatrix @ git+https://github.com/hzeller/rpi-rgb-led-matrix.git",
 ]
 dev = [
     "pytest>=8",
