@@ -20,7 +20,8 @@ ARG RGBMATRIX_REF=2f72a32b3deea16d2b8e9b281d0475ef3b1d0d72
 RUN pip install --no-cache-dir cython \
     && git clone https://github.com/hzeller/rpi-rgb-led-matrix.git /opt/rpi-rgb-led-matrix \
     && git -C /opt/rpi-rgb-led-matrix checkout --quiet "${RGBMATRIX_REF}" \
-    && make -C /opt/rpi-rgb-led-matrix build-python PYTHON="$(which python3)" \
+    && make -C /opt/rpi-rgb-led-matrix build-python \
+        PYTHON="$(which python3)" CYTHON="$(which cython)" \
     && pip install --no-cache-dir /opt/rpi-rgb-led-matrix/bindings/python
 
 # Install the app (editable: fonts resolve relative to /app).
